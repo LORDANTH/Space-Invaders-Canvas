@@ -16,13 +16,13 @@
   <img src="https://img.shields.io/badge/Canvas_API-00D4FF?style=for-the-badge&logo=html5&logoColor=white" alt="Canvas">
   <img src="https://img.shields.io/badge/License-Apache_2.0-blue?style=for-the-badge" alt="License">
 </div>
-
+<br>
 <div align="center"><img width="481" height="495" alt="image" src="https://github.com/user-attachments/assets/f9727ad1-ff04-4f7b-a1f7-0b4b0d421a4b" /></div>
-
+<br>
 <div align="center">
   <a href="https://space-invaders-canvas.vercel.app"><img src="https://img.shields.io/badge/🎮_Jugar_Ahora-00d4ff?style=for-the-badge" alt="Jugar Ahora"></a>
 </div>
-
+<br>
 Una recreación del clásico Space Invaders construida con **HTML5 Canvas** y **JavaScript vanilla**. Presenta un menú principal con opciones, control por teclado y táctil, sistema de vidas, jefe final, efectos de partículas, música y soporte para 3 idiomas.
 
 ---
