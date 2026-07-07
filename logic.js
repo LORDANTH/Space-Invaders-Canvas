@@ -1,14 +1,23 @@
+// ============================================================
+// DOM References & Audio Setup
+// ============================================================
 const canvas = document.getElementById('gameCanvas')
 const ctx = canvas.getContext('2d')
 const leftBtn = document.getElementById('leftBtn')
 const rightBtn = document.getElementById('rightBtn')
 const scoreBoard = document.getElementById('scoreBoard')
-const explosionSound = new Audio('explosion1.mp3')
-const healSound = new Audio('heal1.mp3')
-const hitSound = new Audio('hit2.mp3')
-const CombatMusic = new Audio('combat-music1.m4a')
-const hoverSound = new Audio('hover1.wav')
-const clickSound = new Audio('click1.wav')
+
+// Audio
+const explosionSound = new Audio('assets/audio/explosion.mp3')
+const healSound = new Audio('assets/audio/heal.mp3')
+const hitSound = new Audio('assets/audio/hit.mp3')
+const CombatMusic = new Audio('assets/audio/combat-music.m4a')
+const hoverSound = new Audio('assets/audio/hover.wav')
+const clickSound = new Audio('assets/audio/click.wav')
+const gameOverSound = new Audio('assets/audio/game-over.mp3')
+const victorySound = new Audio('assets/audio/victory.mp3')
+
+// UI Elements
 const livesBoard = document.getElementById('livesBoard')
 const damageOverlay = document.getElementById('damageOverlay')
 const gameContainer = document.getElementById('gameContainer')
@@ -21,6 +30,8 @@ const btnBack = document.getElementById('btnBack')
 const btnBackCredits = document.getElementById('btnBackCredits')
 const btnRetry = document.getElementById('btnRetry')
 const btnQuit = document.getElementById('btnQuit')
+const btnRetryWin = document.getElementById('btnRetryWin')
+const btnQuitWin = document.getElementById('btnQuitWin')
 const allButtons = document.querySelectorAll('button')
 const sound = document.getElementById('sound')
 const color = document.getElementById('color')
@@ -28,22 +39,28 @@ const additional = document.getElementById('additional')
 const dev = document.getElementById('dev')
 const testing = document.getElementById('testing')
 const finalScore = document.getElementById('finalScore')
+const finalScoreWin = document.getElementById('finalScoreWin')
 const optionsTitle = document.getElementById('optionsTitle')
 const gameOverTitle = document.getElementById('gameOverTitle')
+const victoryTitle = document.getElementById('victoryTitle')
 const creditsTitle = document.getElementById('creditsTitle')
 const mobileControls = document.getElementById('mobileControls')
 const optionsMenu = document.getElementById('optionsMenu')
 const gameOverMenu = document.getElementById('gameOverMenu')
+const victoryMenu = document.getElementById('victoryMenu')
 const creditsMenu = document.getElementById('creditsMenu')
 const volumeSlider = document.getElementById('volumeSlider')
 const shipColorPicker = document.getElementById('shipColorPicker')
-const gameOverSound = new Audio('game-over3.mp3')
 
+// Audio config
 CombatMusic.loop = true
 CombatMusic.volume = 0.6
 hoverSound.volume = 0.5
 clickSound.volume = 0.5
 
+// ============================================================
+// Game State
+// ============================================================
 const Languages = ['EN', 'ES', 'FR']
 let LangIndex = 0
 let currentLang = Languages[LangIndex]
@@ -58,6 +75,7 @@ let livesInterval
 let animationId
 let playerColor = '#0055ff'
 
+// Start game: hide menu, show HUD, begin timers and game loop
 function startGame() {
   if (isGameActive) return
   isGameActive = true
@@ -69,15 +87,15 @@ function startGame() {
 
   CombatMusic.play()
 
-  enemyInterval = setInterval(spawnEnemy, 1000)
-  bulletInterval = setInterval(fireBullet, 500)
-  livesInterval = setInterval(spawnLivesObj, 15000)
+  enemyInterval = setInterval(spawnEnemy, 1000)   // Spawn enemy every 1s
+  bulletInterval = setInterval(fireBullet, 500)    // Auto-fire every 500ms
+  livesInterval = setInterval(spawnLivesObj, 15000) // Life pickup every 15s
   updateLivesBoard(0)
   requestAnimationFrame(gameLoop)
 }
 
+// Reset game state to initial values
 function resetGame() {
-
   enemies.length = 0
   bullets.length = 0
   livesObj.length = 0
@@ -103,6 +121,9 @@ function resetGame() {
   updateLivesBoard(0)
 }
 
+// ============================================================
+// Menu Event Listeners
+// ============================================================
 btnPlay.addEventListener('click', startGame)
 btnPlay.addEventListener('touchstart', startGame)
 
@@ -143,21 +164,30 @@ btnLanguage.addEventListener('click', () => {
   updateLanguage()
 })
 
-btnRetry.addEventListener('click', () => {
+const btnRetryHandler = () => {
   gameOverMenu.classList.add('hidden')
+  victoryMenu.classList.add('hidden')
   resetGame()
   startGame()
-})
+}
 
-btnQuit.addEventListener('click', () => {
+btnRetryWin.addEventListener('click', btnRetryHandler)
+btnRetry.addEventListener('click', btnRetryHandler)
+
+const btnQuitHandler = () => {
   gameOverMenu.classList.add('hidden')
+  victoryMenu.classList.add('hidden')
   mainMenu.classList.remove('hidden')
   scoreBoard.classList.add('hidden')
   livesBoard.classList.add('hidden')
   mobileControls.classList.add('hidden')
   resetGame()
-})
+}
 
+btnQuitWin.addEventListener('click', btnQuitHandler)
+btnQuit.addEventListener('click', btnQuitHandler)
+
+// Hover and click sounds for all buttons
 allButtons.forEach(button => {
   button.addEventListener('mouseenter', () => {
     hoverSound.currentTime = 0
@@ -170,6 +200,11 @@ allButtons.forEach(button => {
   })
 })
 
+// ============================================================
+// Internationalization
+// ============================================================
+
+// Update all UI text to current language
 function updateLanguage() {
   const language = translations[currentLang]
 
@@ -187,15 +222,20 @@ function updateLanguage() {
   testing.textContent = language.testing
   optionsTitle.textContent = language.optionsTitle
   gameOverTitle.textContent = language.gameOver
+  victoryTitle.textContent = language.winner
   creditsTitle.textContent = language.credits
   btnRetry.textContent = language.retry
+  btnRetryWin.textContent = language.retry
   btnQuit.textContent = language.quit
+  btnQuitWin.textContent = language.quit
   finalScore.textContent = language.finalScore + score
+  finalScoreWin.textContent = language.finalScore + score
   scoreBoard.textContent = language.hudScore + score
 
   btnLanguage.textContent = `${language.language}: ${currentLang}`
 }
 
+// Translation strings for EN, ES, FR
 const translations = {
   EN: {
     play: "Play",
@@ -215,7 +255,8 @@ const translations = {
     quit: "Main Menu",
     finalScore: "Final Score: ",
     dev: "Development",
-    testing: "Testing"
+    testing: "Testing",
+    winner: "Congratulations!"
   },
   ES: {
     play: "Jugar",
@@ -235,7 +276,8 @@ const translations = {
     quit: "Menú Principal",
     finalScore: "Puntaje Final: ",
     dev: "Desarrollo",
-    testing: "Pruebas"
+    testing: "Pruebas",
+    winner: "¡Felicidades!"
   },
   FR: {
     play: "Jouer",
@@ -255,11 +297,15 @@ const translations = {
     quit: "Menu Principal",
     finalScore: "Score Final: ",
     dev: "Développement",
-    testing: "Test"
+    testing: "Test",
+    winner: "Félicitations!"
   }
 }
 
-// Player Object (Navecita)
+// ============================================================
+// Game Objects
+// ============================================================
+
 const player = {
   x: canvas.width / 2 - 15,
   y: canvas.height - 30,
@@ -268,7 +314,6 @@ const player = {
   speed: 5
 }
 
-// Shooting Star Object
 const shootingStar = {
   x: 0,
   y: 0,
@@ -276,7 +321,6 @@ const shootingStar = {
   active: false
 }
 
-// Boss Object
 const boss = {
   active: false,
   x: canvas.width / 2 - 50,
@@ -285,37 +329,25 @@ const boss = {
   height: 60,
   speedX: 3,
   positionY: 50,
-  health: 100,
-  maxHealth: 100
+  health: 500,
+  maxHealth: 500
 }
 
-// Enemy Object (Extraterrestres xd)
 const enemies = []
-
-// Bullets Object
 const bullets = []
-
-// Boss Bullets Object
 const bossBullets = []
-
-// Lives Object
 const livesObj = []
-
-// Explosion Effect
 const explosions = []
-
-// Health Effect
 const healing = []
-
-// Stars
 const stars = []
 const numStars = 100
 
-// Input Tracking
+// ============================================================
+// Input Handling
+// ============================================================
 let leftPressed = false
 let rightPressed = false
 
-// Keyboard Input
 document.addEventListener('keydown', e => {
   if (e.key === 'ArrowLeft') leftPressed = true
   if (e.key === 'ArrowRight') rightPressed = true
@@ -325,19 +357,17 @@ document.addEventListener('keyup', e => {
   if (e.key === 'ArrowRight') rightPressed = false
 })
 
-// Button Input
 leftBtn.addEventListener('touchstart', () => leftPressed = true)
 leftBtn.addEventListener('touchend', () => leftPressed = false)
 rightBtn.addEventListener('touchstart', () => rightPressed = true)
 rightBtn.addEventListener('touchend', () => rightPressed = false)
 
-// Mouse Input
 leftBtn.addEventListener('mousedown', () => leftPressed = true)
 leftBtn.addEventListener('mouseup', () => leftPressed = false)
 rightBtn.addEventListener('mousedown', () => rightPressed = true)
 rightBtn.addEventListener('mouseup', () => rightPressed = false)
 
-// Starfield Effect
+// Initialize background star positions
 for (let i = 0; i < numStars; i++) {
   stars.push({
     x: Math.random() * canvas.width,
@@ -347,7 +377,11 @@ for (let i = 0; i < numStars; i++) {
   })
 }
 
-// Shoot Bullets
+// ============================================================
+// Spawn Functions
+// ============================================================
+
+// Create a bullet at the player's position
 function fireBullet() {
   bullets.push({
     x: player.x + player.width / 2 - 2,
@@ -358,7 +392,7 @@ function fireBullet() {
   })
 }
 
-// Spawn Enemy
+// Create an enemy at a random X position at the top
 function spawnEnemy() {
   if (boss.active) return
   const enemyWidth = 30
@@ -371,7 +405,7 @@ function spawnEnemy() {
   })
 }
 
-// Spawn Lives
+// Create a life pickup at a random X position at the top
 function spawnLivesObj() {
   const lifeWidth = 15
   livesObj.push({
@@ -383,7 +417,11 @@ function spawnLivesObj() {
   })
 }
 
-// Explosion Effect
+// ============================================================
+// Particle Effects
+// ============================================================
+
+// Spawn explosion particles at a given position
 function createExplosion(x, y) {
   const particles = 15
   for (let i = 0; i < particles; i++) {
@@ -398,7 +436,7 @@ function createExplosion(x, y) {
   }
 }
 
-// Healing Effect
+// Spawn healing particles on life pickup
 function HealEffect(x, y) {
   const particle = 10
   for (let i = 0; i < particle; i++) {
@@ -413,7 +451,7 @@ function HealEffect(x, y) {
   }
 }
 
-// Collision Detection AABB Algorithm
+// AABB collision detection between two rectangles
 function isColliding(rect1, rect2) {
   return rect1.x < rect2.x + rect2.width &&
     rect1.x + rect1.width > rect2.x &&
@@ -421,7 +459,11 @@ function isColliding(rect1, rect2) {
     rect1.y + rect1.height > rect2.y
 }
 
-// Update Lives Board
+// ============================================================
+// Lives System
+// ============================================================
+
+// Update remaining lives: positive value = gain, negative = lose
 function updateLivesBoard(value) {
   if (value < 0) {
     damageOverlay.classList.add('animate-flash')
@@ -440,7 +482,7 @@ function updateLivesBoard(value) {
 
   for (let i = 0; i < lives; i++) {
     const heartImg = document.createElement('img')
-    heartImg.src = "heart1.png"
+    heartImg.src = "assets/images/heart.png"
     heartImg.classList.add("heart-icon")
     livesBoard.appendChild(heartImg)
   }
@@ -473,13 +515,15 @@ function updateLivesBoard(value) {
   }
 }
 
-// Logic for game
+// ============================================================
+// Game Update Loop (called every frame)
+// ============================================================
 function update() {
-  // Move player
+  // Player Movement
   if (leftPressed) player.x = Math.max(0, player.x - player.speed)
   if (rightPressed) player.x = Math.min(canvas.width - player.width, player.x + player.speed)
 
-  // Move bullets
+  // Bullets
   for (let i = 0; i < bullets.length; i++) {
     bullets[i].y -= bullets[i].speed
     if (bullets[i].y < 0) {
@@ -488,7 +532,7 @@ function update() {
     }
   }
 
-  // Move enemies
+  // Enemy Movement & Collision
   for (let i = 0; i < enemies.length; i++) {
     enemies[i].y += enemies[i].speed
     if (isColliding(player, enemies[i])) {
@@ -508,12 +552,12 @@ function update() {
     }
   }
 
-  // Damage timer update
+  // Damage Timer
   if (damageTimer > 0) {
     damageTimer--
   }
 
-  // Move lives
+  // Life Pickups
   for (let i = 0; i < livesObj.length; i++) {
     livesObj[i].y += livesObj[i].speed
     if (isColliding(player, livesObj[i])) {
@@ -532,12 +576,12 @@ function update() {
     }
   }
 
-  // Healing timer update
+  // Heal Timer
   if (healTimer > 0) {
     healTimer--
   }
 
-  // Collision detection between bullets and enemies
+  // Bullet-Enemy Collision
   for (let i = 0; i < bullets.length; i++) {
     for (let j = 0; j < enemies.length; j++) {
       if (isColliding(bullets[i], enemies[j])) {
@@ -554,7 +598,7 @@ function update() {
     }
   }
 
-  // Explosion effect update
+  // Explosion Particles
   for (let i = 0; i < explosions.length; i++) {
     const particle = explosions[i]
     particle.x += particle.vx
@@ -567,7 +611,7 @@ function update() {
     }
   }
 
-  // Healing effect update
+  // Healing Particles
   for (let i = 0; i < healing.length; i++) {
     const particle = healing[i]
     particle.x += particle.vx
@@ -580,7 +624,7 @@ function update() {
     }
   }
 
-  // Starfield effect update
+  // Starfield
   stars.forEach(star => {
     star.y += star.speed
     if (star.y > canvas.height) {
@@ -589,7 +633,7 @@ function update() {
     }
   })
 
-  // Shooting star update
+  // Shooting Star
   if (!shootingStar.active && Math.random() < 0.01) {
     shootingStar.active = true
     shootingStar.x += Math.random() * canvas.width
@@ -606,12 +650,13 @@ function update() {
     }
   }
 
-  // Boss activation logic update
-  if (score >= 20 && !boss.active && boss.health > 0) {
+  // Boss Activation
+  if (score >= 250 && !boss.active && boss.health > 0) {
     boss.active = true
   }
 
   if (boss.active) {
+    // Boss Movement
     if (boss.y < boss.positionY) {
       boss.y += 1
     } else {
@@ -621,7 +666,7 @@ function update() {
       }
     }
 
-    // Boss Collision with Bullets
+    // Boss Hit by Bullets
     for (let i = 0; i < bullets.length; i++) {
       if (isColliding(bullets[i], boss)) {
         boss.health -= 5
@@ -631,7 +676,7 @@ function update() {
         explosionSound.currentTime = 0
         explosionSound.play()
 
-        // Check if Boss Defeated
+        // Boss Defeated
         if (boss.health <= 0) {
           boss.active = false
           createExplosion(boss.x + boss.width / 2, boss.y + boss.height / 2)
@@ -639,14 +684,31 @@ function update() {
           score += 1000
 
           setTimeout(() => {
-            alert("Winner, ganaste campeon pero... a que costo?")
-            document.location.reload()
-          }, 2000)
+
+            isGameActive = false
+            cancelAnimationFrame(animationId)
+
+            clearInterval(enemyInterval)
+            clearInterval(bulletInterval)
+            clearInterval(livesInterval)
+
+            CombatMusic.currentTime = 0
+            CombatMusic.pause()
+            victorySound.play()
+
+            victoryMenu.classList.remove('hidden')
+            scoreBoard.classList.add('hidden')
+            livesBoard.classList.add('hidden')
+            mobileControls.classList.add('hidden')
+
+            finalScoreWin.textContent = translations[currentLang].finalScore + score
+
+          }, 1000)
         }
       }
     }
 
-    // Shoot Boss Bullets
+    // Boss Shoots (3 bullet types: left, right, center)
     if (Math.random() < 0.03) {
       bossBullets.push({
         x: boss.x,
@@ -700,7 +762,11 @@ function update() {
   }
 }
 
-// Heart Pixel Pattern
+// ============================================================
+// Rendering
+// ============================================================
+
+// 8x7 pixel heart pattern used for life pickup drawing
 const heartPattern = [
   [0, 1, 1, 0, 0, 1, 1, 0],
   [1, 1, 1, 1, 1, 1, 1, 1],
@@ -711,10 +777,11 @@ const heartPattern = [
   [0, 0, 0, 0, 0, 0, 0, 0]
 ];
 
+// Main draw function — renders everything each frame
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Draw stars
+  // Stars
   stars.forEach(star => {
     const flicker = 0.5 + Math.random() * 0.5
     ctx.fillStyle = `rgba(255, 255, 255, ${flicker})`
@@ -723,7 +790,7 @@ function draw() {
     ctx.fill()
   })
 
-  // Draw shooting star
+  // Shooting Star
   if (shootingStar.active) {
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)'
     ctx.lineWidth = 2
@@ -733,7 +800,7 @@ function draw() {
     ctx.stroke()
   }
 
-  // Draw Player (Navecita)
+  // Player Ship
   let gradient = ctx.createLinearGradient(0, player.y, 0, player.y + player.height)
   gradient.addColorStop(0, '#00d4ff')
   gradient.addColorStop(1, playerColor)
@@ -741,11 +808,11 @@ function draw() {
   ctx.fillStyle = gradient
 
   if (damageTimer > 0) {
-    ctx.fillStyle = '#FF0000'
+    ctx.fillStyle = '#FF0000'    // Red when damaged
   } else if (healTimer > 0) {
-    ctx.fillStyle = 'white'
+    ctx.fillStyle = 'white'      // White when healed
   } else {
-    ctx.fillStyle = gradient
+    ctx.fillStyle = gradient     // Default gradient
   }
 
   ctx.beginPath()
@@ -756,13 +823,13 @@ function draw() {
   ctx.closePath()
   ctx.fill()
 
-  // Draw bullets
+  // Bullets
   ctx.fillStyle = '#FF0000'
   bullets.forEach(bullet => {
     ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height)
   })
 
-  // Draw enemies
+  // Enemies
   enemies.forEach(enemy => {
     let gradientEnemy = ctx.createLinearGradient(enemy.x, enemy.y, enemy.x, enemy.y + enemy.height)
     gradientEnemy.addColorStop(0, '#2ecc71')
@@ -799,7 +866,7 @@ function draw() {
     //ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height)
   })
 
-  // Draw lives objects
+  // Life Pickups (pixel heart)
   ctx.fillStyle = '#e63946'
   livesObj.forEach(live => {
     const size = 2
@@ -810,12 +877,9 @@ function draw() {
         }
       }
     }
-    // Collision box (for testing)
-    //ctx.fillStyle = 'rgba(147, 216, 243, 0.35)'
-    //ctx.fillRect(live.x, live.y, live.width, live.height)
   })
 
-  // Draw boss
+  // Boss
   if (boss.active) {
 
     ctx.fillStyle = '#8e44ad'
@@ -874,7 +938,7 @@ function draw() {
     })
     ctx.shadowBlur = 0
 
-    // Draw boss health bar
+    // Boss health bar UI
     const barWidth = 200
     const barHeight = 10
     const barX = (canvas.width - barWidth) / 2
@@ -895,7 +959,7 @@ function draw() {
     ctx.fillText(`Mondongo espacial: ${boss.health} / ${boss.maxHealth}`, barX + 50, barY + 8)
   }
 
-  // Draw explosions
+  // Explosion Particles (yellow squares)
   ctx.fillStyle = '#fcff34ff'
   explosions.forEach(particle => {
     ctx.globalAlpha = particle.time / 30
@@ -903,7 +967,7 @@ function draw() {
   })
   ctx.globalAlpha = 1
 
-  // Draw healing effects
+  // Healing Particles (green crosses)
   ctx.fillStyle = '#00ff88'
   healing.forEach(particle => {
     ctx.globalAlpha = particle.life / 40
@@ -914,7 +978,9 @@ function draw() {
 
 }
 
-// Game Loop
+// ============================================================
+// Game Loop (runs at ~60fps via requestAnimationFrame)
+// ============================================================
 function gameLoop() {
   if (!isGameActive) return
   update()
