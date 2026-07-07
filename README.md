@@ -15,7 +15,7 @@
   <img src="https://img.shields.io/badge/License-Apache_2.0-blue?style=for-the-badge" alt="License">
 </div>
 
-<div align="center"><img src="screenshot.png" alt="screenshot"></div>
+<div align="center"><img width="481" height="495" alt="screenshot" src="https://github.com/user-attachments/assets/e0c87466-43da-4111-8bf9-008a588e7d8a" /></div>
 
 <div align="center">
   <a href="https://space-invaders-canvas.vercel.app"><img src="https://img.shields.io/badge/🎮_Play_Now-00d4ff?style=for-the-badge" alt="Play Now"></a>
